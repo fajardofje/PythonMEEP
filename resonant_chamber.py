@@ -1,9 +1,7 @@
 # -*- Resonant Chamber-*-
 # -*- coding: utf-8 -*-
 
-# transmission around a 90-degree waveguide bend in 2d
 from __future__ import division
-
 import meep as mp
 import numpy as np
 import matplotlib.pyplot as plt
@@ -22,17 +20,17 @@ mu0 = S.mu_0
 res = 5 # pixels/cm
 sx = 38.  # size of cell in X direction
 sy = 17.  # size of cell in Y direction
-sz = 2.6  # size of cell in Y direction
+sz = 2.6  # size of cell in Z direction
 dpml = 0.2
 r = 5.
 a = 0.1 #Meep unit (meters)
 Wt = mp.Medium(epsilon=80, D_conductivity=0.2 * a/(c * 80 * eps0)) # Water dielectric properties (background) 
-At = mp.Medium(epsilon=-1e20, D_conductivity=9.5 * a/(c * 80 * eps0)) # Antennas dielectric properties
+At = mp.Medium(epsilon=-1e20, D_conductivity=9.5 * a/(c * -1e20 * eps0)) # Antennas dielectric properties
 fcen = 800e6*(a/c)  # pulse center frequency
 df = 50e6*(a/c)     # pulse width (in frequency)
 #Meep variable
 
-#Domain
+#Simulation box and elements
 cell = mp.Vector3(sx,sy,sz)
 pml_layers = [mp.PML(dpml)]
 geometry = [mp.Block(mp.Vector3(sx,sy,mp.inf), center=mp.Vector3(),material=Wt), 
@@ -48,7 +46,6 @@ sources = [mp.Source(mp.GaussianSource(fcen,fwidth=df), component=mp.Ez, center=
 #sources = [mp.Source(mp.ContinuousSource(frequency=fcen, width=20), component=mp.Ez, center=mp.Vector3(-14,5.))]
 sim = mp.Simulation(cell_size=cell, geometry=geometry, boundary_layers=pml_layers, sources=sources, resolution=res)#boundary_layers=pml_layers
 
-#sim.run(until_after_sources=mp.stop_when_fields_decayed(1000,mp.Ez,mp.Vector3(-14,5.,),1e-3))
 sim.run(mp.at_beginning(mp.output_epsilon),
         mp.in_volume(mp.Volume(center=mp.Vector3(0,0,0), size=mp.Vector3(sx,sy,0)), mp.to_appended("ez", mp.at_every(0.6, mp.output_efield_z))),
         mp.in_volume(mp.Volume(center=mp.Vector3(-14 ,5.,0), size=mp.Vector3(0,0,0)), mp.to_appended("EzTr", mp.at_every(0.6, mp.output_efield_z))),
@@ -86,7 +83,7 @@ f = h5py.File(filename, 'r')
 a_group_key = list(f.keys())[0]
 ezr2 = np.asarray(list(f[a_group_key]))
 
-#Receiver2 antenna field
+#Receiver3 antenna field
 filename = problemname+"-EzR3.h5"
 f = h5py.File(filename, 'r')
 a_group_key = list(f.keys())[0]
@@ -101,7 +98,7 @@ ezr4 = np.asarray(list(f[a_group_key]))
 
 
 ############## PLOTS ##################
-#Plot Antennas data
+#Plot Antennas signal
 res = 5.
 courant = 0.5 #default in meep
 a = 0.01
@@ -109,10 +106,6 @@ dt = a/S.c#(res/courant)*a/S.c
 t = np.arange(0,len(ezt)*dt,dt)
 
 fig, axs = plt.subplots(4, 1)
-#axs.plot(t/1e-9, ezt*0.01, '-b', label = '|V$_{transmitted}$|')
-#axs.plot(t/1e-9, ezr*0.01, '--r', label = '|V$_{received}$|')
-#axs.set_xlabel('time (ns)')
-#axs.grid(True)
 axs[0].plot(t/1e-9, ezt*0.01, '-b', label = '|V$_{transmitted}$|')
 axs[1].plot(t/1e-9, ezr2*0.01, '-r', label = '|V2$_{received}$|')
 axs[2].plot(t/1e-9, ezr3*0.01, '-r', label = '|V3$_{received}$|')
