@@ -171,17 +171,17 @@ fft4 = np.fft.fft(vr4)
 
 
 fig, axs = plt.subplots()
-axs.plot(x[0: N//2], 20*np.log(np.abs(fft2)[0:N // 2] * (1 / N) / np.abs(fft)[0:N // 2]), '-b', label = '|S$_{12}$|') # 
+axs.plot(x[0: N//2], 10*np.log10(np.abs(fft2)[0:N // 2] * (1 / N) / np.abs(fft)[0:N // 2]), '-b', label = '|S$_{12}$|') # 
 axs.grid(True)
 axs.set_xlabel('freq (Hz)')
 axs.grid(True)
 
-axs.plot(x[0: N//2], 20*np.log(np.abs(fft3)[0:N // 2] * (1 / N) / np.abs(fft)[0:N // 2]), '-r', label = '|S$_{13}$|') # 
+axs.plot(x[0: N//2], 10*np.log10(np.abs(fft3)[0:N // 2] * (1 / N) / np.abs(fft)[0:N // 2]), '-r', label = '|S$_{13}$|') # 
 axs.grid(True)
 axs.set_xlabel('freq (Hz)')
 axs.grid(True)
 
-axs.plot(x[0: N//2], 20*np.log(np.abs(fft4)[0:N // 2] * (1 / N) / np.abs(fft)[0:N // 2]), '-g', label = '|S$_{14}$|') # 
+axs.plot(x[0: N//2], 10*np.log10(np.abs(fft4)[0:N // 2] * (1 / N) / np.abs(fft)[0:N // 2]), '-g', label = '|S$_{14}$|') # 
 axs.grid(True)
 axs.set_xlabel('freq (Hz)')
 axs.grid(True)
