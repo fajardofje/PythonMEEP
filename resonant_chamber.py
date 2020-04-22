@@ -20,19 +20,19 @@ mu0 = S.mu_0
 res = 5 # pixels/cm
 sx = 38.  # size of cell in X direction
 sy = 17.  # size of cell in Y direction
-sz = 2.6  # size of cell in Z direction
+sz = 3.  # size of cell in Z direction
 dpml = 0.2
 r = 5.
-a = 0.1 #Meep unit (meters)
+a = 0.01 #Meep unit (meters)
 Wt = mp.Medium(epsilon=80, D_conductivity=0.2 * a/(c * 80 * eps0)) # Water dielectric properties (background) 
 At = mp.Medium(epsilon=-1e20, D_conductivity=9.5 * a/(c * -1e20 * eps0)) # Antennas dielectric properties
-fcen = 800e6*(a/c)  # pulse center frequency
-df = 50e6*(a/c)     # pulse width (in frequency)
+fcen = 1000e6*(a/c)  # pulse center frequency
+df = 1000e6*(a/c)     # pulse width (in frequency)
 #Meep variable
 
 #Simulation box and elements
 cell = mp.Vector3(sx,sy,sz)
-pml_layers = [mp.PML(dpml)]
+pml_layers = [mp.PML(dpml, direction=mp.Z, side=mp.High),mp.PML(dpml, direction=mp.Z, side=mp.Low)]
 geometry = [mp.Block(mp.Vector3(sx,sy,mp.inf), center=mp.Vector3(),material=Wt), 
             mp.Block(mp.Vector3(sx,sy,0.2), center=mp.Vector3(0,0,0.6),material=mp.metal), #upper plate
             mp.Block(mp.Vector3(sx,sy,0.2), center=mp.Vector3(0,0,-0.6),material=mp.metal), #lower plate
@@ -42,19 +42,20 @@ geometry = [mp.Block(mp.Vector3(sx,sy,mp.inf), center=mp.Vector3(),material=Wt),
             mp.Block(mp.Vector3(0.2,0.2,0.8), center=mp.Vector3(10.,-5.,0),material=mp.metal), #Antenna 4
             mp.Cylinder(material=Wt, radius=r, height=sz, center=mp.Vector3())] #hole in the middle 
 
-sources = [mp.Source(mp.GaussianSource(fcen,fwidth=df), component=mp.Ez, center=mp.Vector3(-14,5.,0.8))]
+sources = [mp.Source(mp.GaussianSource(fcen,fwidth=df), size=mp.Vector3(0,0,0.8), component=mp.Ez, center=mp.Vector3(-14,5.))]#-14,5.,0.8
 #sources = [mp.Source(mp.ContinuousSource(frequency=fcen, width=20), component=mp.Ez, center=mp.Vector3(-14,5.))]
-sim = mp.Simulation(cell_size=cell, geometry=geometry, boundary_layers=pml_layers, sources=sources, resolution=res)#boundary_layers=pml_layers
+sim = mp.Simulation(cell_size=cell, boundary_layers=pml_layers, geometry=geometry, sources=sources, resolution=res)#geometry=geometry, boundary_layers=pml_layers
 
 sim.run(mp.at_beginning(mp.output_epsilon),
         mp.in_volume(mp.Volume(center=mp.Vector3(0,0,0), size=mp.Vector3(sx,sy,0)), mp.to_appended("ez", mp.at_every(0.6, mp.output_efield_z))),
         mp.in_volume(mp.Volume(center=mp.Vector3(-14 ,5.,0), size=mp.Vector3(0,0,0)), mp.to_appended("EzTr", mp.at_every(0.6, mp.output_efield_z))),
-        mp.in_volume(mp.Volume(center=mp.Vector3(-14.,-5.,0), size=mp.Vector3(0,0,0)), mp.to_appended("EzR2", mp.at_every(0.6, mp.output_efield_z))),
+        mp.in_volume(mp.Volume(center=mp.Vector3(14.,-5.,0), size=mp.Vector3(0,0,0)), mp.to_appended("EzR2", mp.at_every(0.6, mp.output_efield_z))),
         mp.in_volume(mp.Volume(center=mp.Vector3(10.,5.,0), size=mp.Vector3(0,0,0)), mp.to_appended("EzR3", mp.at_every(0.6, mp.output_efield_z))),
         mp.in_volume(mp.Volume(center=mp.Vector3(10.,-5.,0), size=mp.Vector3(0,0,0)), mp.to_appended("EzR4", mp.at_every(0.6, mp.output_efield_z))),
-        until=2000)
+        until=5000)
 #############################################################################################################
 #############################################################################################################
+
 
 ########### LOAD ARRAYS #############
 problemname = "resonant_chamber"
@@ -121,7 +122,7 @@ plt.ylabel('Ez')
 plt.show()
 
 #Plot Permittivity
-i = 8 #z index
+i = 5 #z index
 j = 42 #x index
 plt.imshow(eps[:,:,i], cmap = 'seismic', animated=True)
 plt.show()
@@ -191,5 +192,3 @@ plt.xlabel('Freq (GHz)')
 plt.ylabel('dB')
 plt.show()
 #######################################
-
-
